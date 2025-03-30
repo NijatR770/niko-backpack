@@ -1,39 +1,31 @@
--- Custom Backpack System for FiveM
+local backpackKey = 47  -- 47 is the G key (change it if you want)
 
-fx_version 'cerulean'
-game 'gta5'
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
 
-description 'Simple Backpack System for FiveM'
-author 'Niko'
-version '1.0.0'
-
-local backpacks = {}
-
--- Function to give a player a backpack
-RegisterCommand("givebackpack", function(source, args, rawCommand)
-    local playerId = tonumber(args[1])
-    if playerId then
-        backpacks[playerId] = { storage = 10 } -- Default storage size
-        TriggerClientEvent("backpack:notify", playerId, "You received a backpack with 10 slots!")
-    else
-        print("Invalid player ID")
+        -- Check if the player presses the 'G' key
+        if IsControlJustPressed(1, backpackKey) then
+            -- Open the backpack UI
+            SetNuiFocus(true, true)  -- Focus the NUI (makes it interactive)
+            SendNUIMessage({
+                type = "openBackpack"  -- Trigger the event to open the backpack
+            })
+        end
     end
-end, true)
-
--- Function to check backpack storage
-RegisterCommand("checkbackpack", function(source, args, rawCommand)
-    local playerId = source
-    if backpacks[playerId] then
-        TriggerClientEvent("backpack:notify", playerId, "Your backpack has " .. backpacks[playerId].storage .. " slots.")
-    else
-        TriggerClientEvent("backpack:notify", playerId, "You do not have a backpack.")
-    end
-end, false)
-
--- Notification event
-RegisterNetEvent("backpack:notify")
-AddEventHandler("backpack:notify", function(message)
-    TriggerEvent("chatMessage", "[Backpack]", {255, 255, 0}, message)
 end)
 
-print("Niko Backpack System Loaded")
+-- Register the command to open the backpack
+RegisterCommand("openbackpack", function()
+    -- Open the backpack UI
+    SetNuiFocus(true, true)  -- Focus the NUI
+    SendNUIMessage({
+        type = "openBackpack"  -- Trigger the event to open the backpack
+    })
+end, false)
+
+-- Listen for the close event from the UI (button press)
+RegisterNUICallback("closeBackpack", function(data, cb)
+    SetNuiFocus(false, false)  -- Close the UI and remove focus
+    cb('ok')  -- Acknowledge that the request is complete
+end)
